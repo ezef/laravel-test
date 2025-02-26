@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Lightit\Authentication\Domain\TwoFactorAuthenticatable;
+use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
 /**
  * Domain\Users\Models\User
@@ -26,7 +28,6 @@ use Laravel\Sanctum\HasApiTokens;
  * @property-read int|null $notifications_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
- *
  * @method static \Illuminate\Database\Eloquent\Builder|User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|User query()
@@ -38,10 +39,13 @@ use Laravel\Sanctum\HasApiTokens;
  * @method static \Illuminate\Database\Eloquent\Builder|User wherePassword($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|User whereUpdatedAt($value)
- *
+ * @property string|null $two_factor_auth_secret
+ * @property string|null $two_factor_auth_activated_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorAuthActivatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|User whereTwoFactorAuthSecret($value)
  * @mixin \Eloquent
  */
-class User extends Authenticatable
+class User extends TwoFactorAuthenticatable implements JWTSubject
 {
     use HasApiTokens;
     use Notifiable;
@@ -50,11 +54,14 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        self::TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME,
+        self::TWO_FACTOR_AUTH_SECRET_COLUMN_NAME
     ];
 
     protected $hidden = [
         'password',
         'remember_token',
+        self::TWO_FACTOR_AUTH_SECRET_COLUMN_NAME,
     ];
 
     /**
@@ -67,6 +74,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            self::TWO_FACTOR_AUTH_SECRET_COLUMN_NAME => 'encrypted'
         ];
     }
 
@@ -86,4 +94,24 @@ class User extends Authenticatable
             },
         );
     }
+    /**
+     * Get the identifier that will be stored in the subject claim of the JWT.
+     *
+     * @return mixed
+     */
+    public function getJWTIdentifier(): mixed
+    {
+        return $this->getKey();
+    }
+
+    /**
+     * Return a key-value array containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims(): array
+    {
+        return [];
+    }
+
 }

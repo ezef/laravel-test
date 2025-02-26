@@ -10,11 +10,15 @@
   "license": "MIT",
   "require": {
     "php": "^8.4",
+    "bacon/bacon-qr-code": "^3.0",
     "flugger/laravel-responder": "^3.4",
     "guzzlehttp/guzzle": "^7.2",
     "laravel/framework": "^11.31",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.9",
+    "php-open-source-saver/jwt-auth": "^2.0",
+    "pragmarx/google2fa-laravel": "^2.2",
+    "pragmarx/google2fa-qrcode": "^3.0",
     "sentry/sentry-laravel": "^4.4",
     "spatie/laravel-query-builder": "^6.0"
   },
@@ -27,6 +31,7 @@
     "laravel/pail": "^1.1",
     "laravel/pint": "^1.13",
     "laravel/sail": "^1.26",
+    "light-it-labs/lightit-auth-laravel": "dev-main",
     "mockery/mockery": "^1.6",
     "nunomaduro/collision": "^8.1",
     "pestphp/pest": "^3.0",
@@ -84,6 +89,12 @@
       "dont-discover": []
     }
   },
+  "repositories": [
+    {
+      "type": "path",
+      "url": "../lightit-auth-laravel"
+    }
+  ],
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",
@@ -97,6 +108,6 @@
       "captainhook/hook-installer": true
     }
   },
-  "minimum-stability": "stable",
+  "minimum-stability": "dev",
   "prefer-stable": true
 }

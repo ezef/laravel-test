@@ -39,6 +39,11 @@ return Application::configure(basePath: dirname(__DIR__))
             SecurityHeaders::class,
         ]);
 
+        $middleware->alias([
+            '2fa_active' => \Lightit\Shared\App\Middlewares\ActiveTwoFactorAuthenticationMiddleware::class,
+            '2fa_inactive' => \Lightit\Shared\App\Middlewares\InactiveTwoFactorAuthenticationMiddleware::class,
+        ]);
+
         // Use the following to modify web and api middlewares
         // https://laravel.com/docs/11.x/middleware#laravels-default-middleware-groups
 

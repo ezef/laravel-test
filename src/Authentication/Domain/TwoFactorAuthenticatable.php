@@ -1,0 +1,72 @@
+<?php
+declare(strict_types=1);
+
+namespace Lightit\Authentication\Domain;
+
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+/**
+ * 
+ *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TwoFactorAuthenticatable newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TwoFactorAuthenticatable newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TwoFactorAuthenticatable query()
+ * @mixin \Eloquent
+ */
+class TwoFactorAuthenticatable extends Authenticatable
+{
+
+    public const TWO_FACTOR_AUTH_SECRET_COLUMN_NAME = 'two_factor_auth_secret';
+    public const TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME = 'two_factor_auth_activated_at';
+
+    /**
+     * Get the attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            self::TWO_FACTOR_AUTH_SECRET_COLUMN_NAME => 'encrypted',
+            self::TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME => 'datetime',
+        ];
+    }
+
+    public function hasTwoFactorAuthenticationEnabled(): bool
+    {
+        return (bool) $this->getAttribute(self::TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME);
+    }
+
+    public function hasTwoFactorAuthenticationConfigured(): bool
+    {
+        return $this->getTwoFactorAuthSecret()
+            && $this->getAttribute(self::TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME);
+    }
+
+    public function getTwoFactorAuthSecret(): string|null
+    {
+        return $this->getAttribute(self::TWO_FACTOR_AUTH_SECRET_COLUMN_NAME);
+    }
+
+    public function hasTwoFactorAuthenticationExpired(): bool
+    {
+        $isTwoFactorAuthenticationEternal = config('google2fa.lifetime') == 0;
+
+        return ! $isTwoFactorAuthenticationEternal
+            && $this->getAttribute(self::TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME)?->toImmutable()
+                ->addMinutes((int) config('google2fa.lifetime'))
+                ->lessThan(now());
+    }
+
+    public function getAuthenticatableHolderIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    public function clearTwoFactorAuthenticationCredentials(): void
+    {
+        $this->update([
+             self::TWO_FACTOR_AUTH_ACTIVATED_AT_COLUMN_NAME => null,
+        ]);
+    }
+}
